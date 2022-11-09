@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  db:
+    image: music-store-catalog-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    restart: always
+    ports:
+      - '3306:3306'
+    volumes:
+      - "C:\javaBootcamp\Final project\local\musicstore-catalog\db\data":/var/lib/mysql
+    networks:
+      - rsvpnetwork
+
+  app:
+    image: music-store-catalog-server
+    restart: always
+    ports:
+      - '7878:7878'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/music-store-catalog-db?useSSL=false&serverTimezone=US/Eastern&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true
+    depends_on:
+      - db
+    networks:
+      - rsvpnetwork
+
+networks:
+  rsvpnetwork:
+    driver: bridge
