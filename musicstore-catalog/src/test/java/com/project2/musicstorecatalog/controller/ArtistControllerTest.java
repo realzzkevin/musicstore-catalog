@@ -2,7 +2,6 @@ package com.project2.musicstorecatalog.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project2.musicstorecatalog.model.Artist;
-import com.project2.musicstorecatalog.model.Label;
 import com.project2.musicstorecatalog.repository.ArtistRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -114,8 +113,8 @@ public class ArtistControllerTest {
 
     @Test
     public void shouldReturn204StatusWithUpdate() throws Exception {
-        when(artistRepo.save(inputArtist2)).thenReturn(null);
-        String inJson = mapper.writeValueAsString(inputArtist2);
+        when(artistRepo.save(outputArtist2)).thenReturn(null);
+        String inJson = mapper.writeValueAsString(outputArtist2);
         mockMvc.perform(
                         put("/artist")
                                 .content(inJson)
@@ -132,6 +131,39 @@ public class ArtistControllerTest {
         mockMvc.perform(
                         put("/artist")
                                 .content(inJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void shouldReturn422StatusCreateArtistWithMissingProperties() throws Exception {
+        Artist badInputRequest = inputArtist2;
+        badInputRequest.setName(null);
+        String badInputJson = mapper.writeValueAsString(badInputRequest);
+
+        doReturn(new IllegalArgumentException("Name is missing, unable to create")).when(artistRepo).save(badInputRequest);
+
+        mockMvc.perform(
+                        post("/artist")
+                                .content(badInputJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+    @Test
+    public void shouldReturn422StatusUpdateArtistWithMissingProperties() throws Exception {
+        Artist badInputRequest = inputArtist2;
+        badInputRequest.setName(null);
+        String badInputJson = mapper.writeValueAsString(badInputRequest);
+
+        doReturn(new IllegalArgumentException("No user id found, unable to update")).when(artistRepo).save(badInputRequest);
+
+        mockMvc.perform(
+                        put("/artist")
+                                .content(badInputJson)
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,14 +32,18 @@ public class LabelController {
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public Label addLabel(@RequestBody Label label) {
+    public Label addLabel(@RequestBody @Valid Label label) {
         return repo.save(label);
     }
 
     @PutMapping()
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateLabel(@RequestBody Label label) {
-        repo.save(label);
+    public void updateLabel(@RequestBody @Valid Label label) {
+        if (label.getId() != null) {
+            repo.save(label);
+        } else {
+            throw new IllegalArgumentException("Label id not present, unable to update.");
+        }
     }
 
     @DeleteMapping("/{id}")

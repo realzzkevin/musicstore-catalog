@@ -93,8 +93,8 @@ public class LabelControllerTest {
 
     @Test
     public void shouldReturn204StatusWithUpdate() throws Exception {
-        when(labelRepo.save(inputLabel2)).thenReturn(null);
-        String inJson = mapper.writeValueAsString(inputLabel2);
+        when(labelRepo.save(outputLabel2)).thenReturn(null);
+        String inJson = mapper.writeValueAsString(outputLabel2);
         mockMvc.perform(
                 put("/label")
                         .content(inJson)
@@ -102,6 +102,43 @@ public class LabelControllerTest {
         )
                 .andDo(print())
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void shouldReturn422StatusCreateLabelWithMissingNames() throws Exception {
+        Label badInputRequest = inputLabel1;
+        badInputRequest.setName(null);
+
+
+        String badInputJson = mapper.writeValueAsString(badInputRequest);
+
+        doReturn(new IllegalArgumentException("Name is missing, unable to create")).when(labelRepo).save(badInputRequest);
+
+        mockMvc.perform(
+                        post("/label")
+                                .content(badInputJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+    @Test
+    public void shouldReturn422StatusUpdateLabelWithMissingProperties() throws Exception {
+        Label badInputRequest = inputLabel2;
+        badInputRequest.setName(null);
+
+
+        String badInputJson = mapper.writeValueAsString(badInputRequest);
+
+        doReturn(new IllegalArgumentException("Name is missing, unable to update")).when(labelRepo).save(badInputRequest);
+
+        mockMvc.perform(
+                        put("/label")
+                                .content(badInputJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test

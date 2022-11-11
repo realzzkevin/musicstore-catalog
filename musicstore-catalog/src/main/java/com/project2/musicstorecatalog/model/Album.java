@@ -8,6 +8,10 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 
 import javax.persistence.*;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -20,20 +24,24 @@ public class Album {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "album_id")
     private Long id;
-
+    @NotEmpty(message = "Album title is missing")
+    @Size(max = 50, message = "Title should be under 50 characters")
     private String title;
 
+    @NotNull(message = "Artist Id is missing")
     private Long artistId;
-
-
+    @NotNull(message = "Realease Date is missing")
     @JsonSerialize(using = LocalDateSerializer.class)
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "release_date")
     private LocalDate releaseDate;
 
+    @NotNull(message = "Label Id is missing")
     private Long labelId;
 
+    @NotNull(message = "List price is missing")
+    @Digits(integer = 3, fraction = 2, message = "Price cannot be more than 999.99")
     @Column(name = "list_price")
     private BigDecimal listPrice;
 
@@ -63,8 +71,6 @@ public class Album {
     public void setTitle(String title) {
         this.title = title;
     }
-
-
 
     public LocalDate getReleaseDate() {
         return releaseDate;

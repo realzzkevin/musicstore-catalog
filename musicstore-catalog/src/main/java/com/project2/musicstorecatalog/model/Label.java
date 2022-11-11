@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.Objects;
 
 @Entity
@@ -15,9 +16,11 @@ public class Label {
     @Column(name = "label_id")
     private Long id;
 
-    @NotEmpty
+    @NotEmpty(message = "name is missing.")
+    @Size(max = 50, message = "name should be under 50 characters")
     private String name;
 
+    @Size(max = 255, message = "Website length should be under 255 characters")
     private String website;
 
     public Label() {

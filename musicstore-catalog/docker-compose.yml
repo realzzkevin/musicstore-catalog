@@ -11,8 +11,8 @@ services:
       - '3306:3306'
     volumes:
       - "C:\javaBootcamp\Final project\local\musicstore-catalog\db\data":/var/lib/mysql
-    networks:
-      - rsvpnetwork
+#    networks:
+#      - rsvpnetwork
 
   app:
     image: music-store-catalog-server
@@ -23,9 +23,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/music-store-catalog-db?useSSL=false&serverTimezone=US/Eastern&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true
     depends_on:
       - db
-    networks:
-      - rsvpnetwork
-
-networks:
-  rsvpnetwork:
-    driver: bridge
+#    networks:
+#      - rsvpnetwork
+#
+#networks:
+#  rsvpnetwork:
+#    driver: bridge

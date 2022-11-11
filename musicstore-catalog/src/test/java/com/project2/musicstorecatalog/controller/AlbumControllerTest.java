@@ -3,7 +3,10 @@ package com.project2.musicstorecatalog.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project2.musicstorecatalog.model.Album;
 import com.project2.musicstorecatalog.model.Artist;
+import com.project2.musicstorecatalog.model.Label;
 import com.project2.musicstorecatalog.repository.AlbumRepository;
+import com.project2.musicstorecatalog.repository.ArtistRepository;
+import com.project2.musicstorecatalog.repository.LabelRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,10 +43,20 @@ public class AlbumControllerTest {
     @MockBean
     private AlbumRepository albumRepo;
 
+    @MockBean
+    private LabelRepository labelRepo;
+
+    @MockBean
+    private ArtistRepository artistRepo;
+
     private Album inputAlbum1;
     private Album inputAlbum2;
     private Album outputAlbum1;
     private Album outputAlbum2;
+
+    private Label label;
+
+    private Artist artist;
 
     private List<Album> albumList;
 
@@ -54,31 +67,31 @@ public class AlbumControllerTest {
 
         inputAlbum1 = new Album();
         inputAlbum1.setTitle("album1");
-        inputAlbum1.setArtistId((long)1);
-        inputAlbum1.setLabelId((long)2);
+        inputAlbum1.setArtistId(1L);
+        inputAlbum1.setLabelId(2L);
         inputAlbum1.setReleaseDate(LocalDate.of(2022,01, 01));
         inputAlbum1.setListPrice(new BigDecimal("19.99"));
 
         inputAlbum2 = new Album();
         inputAlbum2.setTitle("album2");
-        inputAlbum2.setArtistId((long)2);
-        inputAlbum2.setLabelId((long)3);
+        inputAlbum2.setArtistId(2L);
+        inputAlbum2.setLabelId(3L);
         inputAlbum2.setReleaseDate(LocalDate.of(2000, 02, 20));
         inputAlbum2.setListPrice(new BigDecimal("29.99"));
 
         outputAlbum1 = new Album();
         outputAlbum1.setTitle("album1");
-        outputAlbum1.setArtistId((long)1);
-        outputAlbum1.setLabelId((long)2);
+        outputAlbum1.setArtistId(1L);
+        outputAlbum1.setLabelId(2L);
         outputAlbum1.setReleaseDate(LocalDate.of(2022,01, 01));
         outputAlbum1.setListPrice(new BigDecimal("19.99"));
 
-        outputAlbum1.setId((long)1);
+        outputAlbum1.setId(1L);
 
         outputAlbum2 = new Album();
         outputAlbum2.setTitle("album2");
-        outputAlbum2.setArtistId((long)2);
-        outputAlbum2.setLabelId((long)3);
+        outputAlbum2.setArtistId(2L);
+        outputAlbum2.setLabelId(3L);
         outputAlbum2.setReleaseDate(LocalDate.of(2000, 02, 20));
         outputAlbum2.setListPrice(new BigDecimal("29.99"));
 
@@ -88,6 +101,11 @@ public class AlbumControllerTest {
         albumList.add(outputAlbum1);
         albumList.add(outputAlbum2);
 
+        label = new Label("label", "website");
+        label.setId(1L);
+
+        artist = new Artist("Rock Start", null, null);
+        artist.setId(1L);
     }
 
     @Test
@@ -112,7 +130,7 @@ public class AlbumControllerTest {
         String outJson = mapper.writeValueAsString(outputAlbum1);
 
         mockMvc.perform(
-                        get("/album/{id}", (long)1)
+                        get("/album/{id}", 1L)
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -123,6 +141,8 @@ public class AlbumControllerTest {
     public void shouldReturnNewAlbum() throws Exception {
 
         when(albumRepo.save(inputAlbum1)).thenReturn(outputAlbum1);
+        when(labelRepo.findById(2L)).thenReturn(Optional.of(label));
+        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
 
         String inJson = mapper.writeValueAsString(inputAlbum1);
         String outJson = mapper.writeValueAsString(outputAlbum1);
@@ -140,8 +160,11 @@ public class AlbumControllerTest {
 
     @Test
     public void shouldReturn204StatusWithUpdate() throws Exception {
-        when(albumRepo.save(inputAlbum2)).thenReturn(null);
-        String inJson = mapper.writeValueAsString(inputAlbum2);
+
+        when(albumRepo.save(outputAlbum2)).thenReturn(null);
+        when(labelRepo.findById(3L)).thenReturn(Optional.of(label));
+        when(artistRepo.findById(2L)).thenReturn(Optional.of(artist));
+        String inJson = mapper.writeValueAsString(outputAlbum2);
         mockMvc.perform(
                         put("/album")
                                 .content(inJson)
@@ -149,6 +172,75 @@ public class AlbumControllerTest {
                 )
                 .andDo(print())
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void shouldReturn422StatusCreateAlbumWithMissingProperties() throws Exception {
+        Album badInputRequest = inputAlbum2;
+        badInputRequest.setListPrice(null);
+        String badInputJson = mapper.writeValueAsString(badInputRequest);
+//        the mocking is not necessary. exception was throw at controller layer.
+//        when(labelRepo.findById(2L)).thenReturn(Optional.of(label));
+//        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
+//
+//        doReturn(new IllegalArgumentException("No List price found, unable to create")).when(albumRepo).save(badInputRequest);
+
+        mockMvc.perform(
+                        post("/album")
+                                .content(badInputJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void shouldReturn422StatusWhenLabelIdOrArtistIdNotExist() throws Exception {
+        Album badInputRequest = inputAlbum2;
+        String badInputJson = mapper.writeValueAsString(badInputRequest);
+//        Mocking is not necessary
+//        when(labelRepo.findById(anyLong())).thenReturn(null);
+//        when(artistRepo.findById(anyLong())).thenReturn(null);
+
+        //create a new album with not exist label id and artist id;
+        mockMvc.perform(
+                        post("/album")
+                                .content(badInputJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+
+
+        badInputRequest = outputAlbum2;
+        badInputJson = mapper.writeValueAsString(badInputRequest);
+
+        //update a album with not exist label id and artist id
+        mockMvc.perform(
+                        put("/album")
+                                .content(badInputJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+
+
+        badInputRequest = outputAlbum2;
+        badInputJson = mapper.writeValueAsString(badInputRequest);
+    }
+    @Test
+    public void shouldReturn422StatusUpdateAlbumWithMissingProperties() throws Exception {
+        Album badInputRequest = outputAlbum1;
+        badInputRequest.setListPrice(null);
+        String badInputJson = mapper.writeValueAsString(badInputRequest);
+
+        mockMvc.perform(
+                        put("/album")
+                                .content(badInputJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -166,10 +258,10 @@ public class AlbumControllerTest {
 
     @Test
     public void shouldReturnNoContentWithDelete() throws Exception {
-        doNothing().when(albumRepo).deleteById((long)1);
+        doNothing().when(albumRepo).deleteById(1L);
 
         mockMvc.perform(
-                        delete("/album/{id}", (long)1)
+                        delete("/album/{id}", 1L)
                 )
                 .andDo(print())
                 .andExpect(status().isNoContent());

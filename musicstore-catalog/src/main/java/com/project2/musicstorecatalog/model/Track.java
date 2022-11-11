@@ -3,6 +3,9 @@ package com.project2.musicstorecatalog.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.Objects;
 
 @Entity
@@ -14,9 +17,13 @@ public class Track {
     @Column(name = "track_id")
     private Long id;
 
+    @NotNull(message = "Album id is missing.")
     private Long albumId;
 
+    @NotEmpty(message = "Track title is missing.")
+    @Size(max = 50, message = "Title must be under 50 characters")
     private String title;
+    @NotNull(message = "Run time is missing.")
     @Column(name = "run_time")
     private long runTime;
 

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,14 +32,19 @@ public class ArtistController {
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public Artist addArtist(@RequestBody Artist artist) {
+    public Artist addArtist(@RequestBody @Valid Artist artist) {
         return repo.save(artist);
     }
 
     @PutMapping()
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateArtist(@RequestBody Artist artist) {
-        repo.save(artist);
+    public void updateArtist(@RequestBody @Valid Artist artist) {
+
+        if (artist.getId() != null) {
+            repo.save(artist);
+        } else {
+            throw new IllegalArgumentException("Artist Id not present, unable to update");
+        }
     }
 
     @DeleteMapping("/{id}")
