@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,4 +47,17 @@ public class ControllerExceptionHandler {
         ResponseEntity<CustomErrorResponse> responseEntity = new ResponseEntity<>(error, status422);
         return responseEntity;
     }
+
+    @ExceptionHandler(value = {SQLIntegrityConstraintViolationException.class})
+    @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
+    public ResponseEntity<CustomErrorResponse> outOfRangeException(SQLIntegrityConstraintViolationException e) {
+        HttpStatus status422 = HttpStatus.UNPROCESSABLE_ENTITY;
+        CustomErrorResponse error = new CustomErrorResponse(status422.toString(), e.getMessage());
+        error.setStatus(status422.value());
+        error.setTimeStamp(LocalDateTime.now());
+        ResponseEntity<CustomErrorResponse> responseEntity = new ResponseEntity<>(error, status422);
+        return responseEntity;
+    }
+
+
 }
